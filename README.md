@@ -18,7 +18,8 @@ The `f64_to_fixed` and `f64_to_exp` functions have additional return values, ind
 * `IMPORT_STRING_TO_FLOAT`: Import the Ryū string to float algorithms.
 * `DEBUG`: Print debugging information. Set to false by default.
 
-# Performance comparison between Ryū and stb_sprintf (10000 samples, 1000 iterations, lower is better)
+# Performance comparison between Ryū and stb_sprintf, lower is better
+Compiled using the LLVM backend in release mode (options -llvm -release). Executed 1000 times for 10000 random values.
 ## Fixed form:
 ![Fixed form benchmark](benchmark_fixed.svg)
 ## Exponent form:
