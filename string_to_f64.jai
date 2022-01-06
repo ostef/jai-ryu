@@ -73,7 +73,7 @@ string_to_f64 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f6
 	signed_m := false;
 	signed_e := false;
 	i : s32 = 0;
-	if len == cast (s32) nan_string.count && memcmp (buffer, nan_string.data, nan_string.count) == 0
+	if len >= cast (s32) nan_string.count && memcmp (buffer, nan_string.data, nan_string.count) == 0
 	{
 		i += cast (s32) nan_string.count;
 		ieee := (cast (u64) signed_m) << (F64_EXPONENT_BITS + F64_MANTISSA_BITS) | (0x7ff << F64_MANTISSA_BITS) | 1;
@@ -87,7 +87,7 @@ string_to_f64 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f6
 	}
 	else if buffer[i] == #char "+"
 		i += 1;
-	if len - i == cast (s32) inf_string.count && memcmp (buffer + i, inf_string.data, inf_string.count) == 0
+	if len - i >= cast (s32) inf_string.count && memcmp (buffer + i, inf_string.data, inf_string.count) == 0
 	{
 		i += cast (s32) inf_string.count;
 		ieee := (cast (u64) signed_m) << (F64_EXPONENT_BITS + F64_MANTISSA_BITS) | (0x7ff << F64_MANTISSA_BITS);
@@ -96,29 +96,24 @@ string_to_f64 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f6
 	}
 	while i < len
 	{
-		defer i += 1;
 		c := buffer[i];
 		if c == decimal_separator
 		{
 			if dot_index != len
 				return 0.0, .MALFORMED_INPUT, i;
 			dot_index = i;
+			i += 1;
 
 			continue;
 		}
 		if c < #char "0" || c > #char "9"
-		{
-			// break will trigger the defer i += 1 so we
-			// need to decrement the index.
-			i -= 1;
-
 			break;
-		}
 		if m10digits >= 17
 			return 0.0, .INPUT_TOO_LONG, i;
 		m10 = 10 * m10 + (c - #char "0");
 		if m10 != 0
 			m10digits += 1;
+		i += 1;
 	}
 	if i < len && (buffer[i] == #char "e" || buffer[i] == #char "E")
 	{

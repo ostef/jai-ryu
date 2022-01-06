@@ -98,5 +98,24 @@ Parse_Status :: enum
 
 #scope_module
 
+Format :: struct
+{
+	Flags :: enum_flags
+	{
+		FORCE_SIGN :: 0x01;
+		ALIGN_SIGN :: 0x02;
+		FORCE_SIGN_ON_EXPONENT :: 0x04;
+		UPPERCASE  :: 0x08;
+		REMOVE_TRAILING_ZEROES :: 0x10;
+	}
+
+	flags : Flags;
+	min_width : u32;
+	precision : u32;
+	decimal_separator : u8 = #char ".";
+	nan_string := "NaN";
+	inf_string := "Inf";
+}
+
 f32 :: float32;
 f64 :: float64;

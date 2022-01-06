@@ -94,29 +94,24 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	}
 	while i < len
 	{
-		defer i += 1;
 		c := buffer[i];
 		if c == decimal_separator
 		{
 			if dot_index != len
 				return 0.0, .MALFORMED_INPUT, i;
 			dot_index = i;
+			i += 1;
 
 			continue;
 		}
 		if c < #char "0" || c > #char "9"
-		{
-			// break will trigger the defer i += 1 so we
-			// need to decrement the index.
-			i -= 1;
-
 			break;
-		}
 		if m10digits >= 9
 			return 0.0, .INPUT_TOO_LONG, i;
 		m10 = 10 * m10 + (c - #char "0");
 		if m10 != 0
 			m10digits += 1;
+		i += 1;
 	}
 	if i < len && (buffer[i] == #char "e" || buffer[i] == #char "E")
 	{
