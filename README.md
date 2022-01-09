@@ -37,6 +37,7 @@ Format :: struct
 		ALIGN_SIGN :: 0x02;
 		FORCE_SIGN_ON_EXPONENT :: 0x04;
 		UPPERCASE  :: 0x08;
+		REMOVE_TRAILING_ZEROES :: 0x10;
 	}
 
 	flags : Flags;
@@ -51,7 +52,8 @@ Format :: struct
 * `FORCE_SIGN`: print a + in front of positive values,
 * `ALIGN_SIGN`: print a space in front of positive values,
 * `FORCE_SIGN_ON_EXPONENT`: print a + in front of positive exponent values,
-* `UPPERCASE`: print E instead of e for exponent.
+* `UPPERCASE`: print E instead of e for exponent,
+* `REMOVE_TRAILING_ZEROES`: remove trailing zeroes in the fracional_part. If the fractional part is all zeroes, the decimal point is not printed.
 
 `min_width` is the minimum number of digits to be printed. If the result is not infinity or nan, it is padded with zeroes between the sign and the integral part to fill the width. If it is infinity or nan, it is padded with spaces before the sign.  
 `precision` is the number of digits to be printed after the decimal point.  
