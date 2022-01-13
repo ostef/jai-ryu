@@ -20,10 +20,14 @@ The `f64_to_fixed` and `f64_to_exp` functions have additional return values, ind
 
 # Performance comparison between Ryū and stb_sprintf, lower is better
 Compiled using the LLVM backend in release mode (options -llvm -release). Executed 1000 times for 10000 random values.
+
 ## Fixed form:
 ![Fixed form benchmark](benchmark_fixed.svg)
 ## Exponent form:
 ![Exponent form benchmark](benchmark_exp.svg)
+
+Note that the Jai compiler is still in closed beta as of now, and our implementation of Ryu will get faster in the future as the compiler produces faster output. Also, this was compared against stb_sprintf compiled from the original C source code using `cl /O2 /Oi`.  
+Note that you most likely will never use Ryu with a precision of more than 16 digits (in exponent form), because 17 digits is enough to uniquely identify a f64, and when printing floating point values, you want them to be readable and/or parsable, and `string_to_f64` only works for up to 17 total non zero digits in the mantissa. This means that performance comparisons for higher precisions are mostly irrelevant. Consider this.
 
 # Formatting options
 The Jai port of Ryū has additional formatting options for the Ryū printf d2fixed and d2exp algorithms. There is an overload of `f64_to_fixed` and `f64_to_exp` that takes a `fmt : Format` as argument instead of a `precision : u32`. The format struct is defined as follows:
