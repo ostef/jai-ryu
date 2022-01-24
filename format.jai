@@ -82,10 +82,9 @@ f64_format :: inline (
 		- index
 		- cast (s32) integral_part.count
 		- cast (s32) (fractional_length > 0)
-		- fractional_length
-		- 1
-		- cast (s32) lead_exponent_with_sign
-		- cast (s32) exponent_part.count;
+		- fractional_length;
+	if exponent_part
+		fill_width -= 1 + cast (s32) lead_exponent_with_sign + cast (s32) exponent_part.count;
 	if fill_width > 0
 	{
 		memset (result + index, #char "0", fill_width);
