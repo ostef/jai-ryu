@@ -10,6 +10,9 @@ Jai implementation of [Ryū: Fast float to string conversion and Ryū printf](ht
 
 The `f64_to_fixed` and `f64_to_exp` functions have additional return values, indicating whether the floating point value was negative, whether it was infinity or nan, the integral, fractional, and exponent part of the result, as well as the exponent's sign. This information can be useful to implement additional formatting to the final value, as implemented in `format.jai`.
 
+# Dependencies
+Ryu does not import anything, so this is a standalone module. If `DEBUG` is specified in the module parameters, `Basic` is imported for printing.
+
 # Module parameters
 * `USE_64BIT_INSTRUCTIONS`: Use x86_64 asm instructions (using #asm blocks), mainly used in umul128 for double precision. There shouldn't be any reason to set this to false, since Jai only supports x64 so this should always be available, and faster. Set to true by default.
 * `OPTIMIZE_SIZE`: Use small tables instead of full tables for d2s. Not entirely supported since d2s only implements it partially. If you want small tables then don't import string to float. Small tables removes about 5 KB to the final executable. Set to false by default.
@@ -19,7 +22,7 @@ The `f64_to_fixed` and `f64_to_exp` functions have additional return values, ind
 * `DEBUG`: Print debugging information. Set to false by default.
 
 # Performance comparison between Ryū and stb_sprintf, lower is better
-Compiled using the LLVM backend in release mode (options -llvm -release). Executed 1000 times for 10000 random values.
+Compiled using the LLVM backend in release mode (options -llvm -release). Executed 1000 times for 10000 random values. We compare against stb_sprintf as it is the library that is used by the default modules.
 
 ## Fixed form:
 ![Fixed form benchmark](benchmark_fixed.svg)
