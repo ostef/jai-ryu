@@ -11,7 +11,7 @@ Jai implementation of [Ryū: Fast float to string conversion and Ryū printf](ht
 The `f64_to_fixed` and `f64_to_exp` functions have additional return values, indicating whether the floating point value was negative, whether it was infinity or nan, the integral, fractional, and exponent part of the result, as well as the exponent's sign. This information can be useful to implement additional formatting to the final value, as implemented in `format.jai`.
 
 # Dependencies
-Ryu does not import anything, so this is a standalone module. If `DEBUG` is specified in the module parameters, `Basic` is imported for printing.
+By default, Ryu does not import anything, so this is a standalone module. If `DEBUG` is specified in the module parameters, `Basic` is imported for printing.
 
 # Module parameters
 * `USE_64BIT_INSTRUCTIONS`: Use x86_64 asm instructions (using #asm blocks), mainly used in umul128 for double precision. There shouldn't be any reason to set this to false, since Jai only supports x64 so this should always be available, and faster. Set to true by default.
