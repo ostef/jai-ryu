@@ -266,6 +266,7 @@ f64_to_fixed_buffered :: (
 	is_nan : bool,
 	integral_part : string,
 	fractional_part : string
+#no_abc
 {
 	bits := f64_to_bits (f);
 #if DEBUG
@@ -567,6 +568,7 @@ f64_to_exp_buffered :: (
 	fractional_part : string,
 	exponent_sign : bool,
 	exponent_part : string
+#no_abc
 {
 	bits := f64_to_bits (f);
 #if DEBUG
