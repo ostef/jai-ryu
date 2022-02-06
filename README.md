@@ -15,7 +15,7 @@ By default, Ryu does not import anything, so this is a standalone module. If `DE
 
 # Module parameters
 * `USE_64BIT_INSTRUCTIONS`: Use x86_64 asm instructions (using #asm blocks), mainly used in umul128 for double precision. There shouldn't be any reason to set this to false, since Jai only supports x64 so this should always be available, and faster. Set to true by default.
-* `OPTIMIZE_SIZE`: Use small tables instead of full tables for d2s. Not entirely supported since d2s only implements it partially. If you want small tables then don't import string to float. Small tables removes about 5 KB to the final executable. Set to false by default.
+* `OPTIMIZE_SIZE`: Use small tables instead of full tables for d2s. Not entirely supported since s2d only implements it partially. If you want small tables then don't import string to float. Small tables removes about 5 KB to the final executable. Set to false by default.
 * `IMPORT_FLOAT_TO_SHORTEST`: Import the f2s and d2s algorithms. Set to true by default.
 * `IMPORT_FLOAT_TO_FIXED_AND_EXP`: Import the Ryū printf d2fixed and d2exp algorithms. Set to true by default.
 * `IMPORT_STRING_TO_FLOAT`: Import the Ryū string to float algorithms.
