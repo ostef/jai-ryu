@@ -29,7 +29,9 @@
 umul128 :: inline (left : u64, right : u64, product_hi : *u64) -> u64
 {
 	low := left;
-	high : u64 = ---;
+	// @Note (stefan): mul.q below does not always write to the
+	// high part, so we can't leave it uninitialized
+	high : u64;
 	#asm
 	{
 		right === c;
