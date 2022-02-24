@@ -115,6 +115,8 @@ string_to_f64 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f6
 			m10digits += 1;
 		i += 1;
 	}
+	if i == 0
+		return 0.0, .MALFORMED_INPUT, i;
 	if i < len && (buffer[i] == #char "e" || buffer[i] == #char "E")
 	{
 		e_index = i;
@@ -126,17 +128,19 @@ string_to_f64 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f6
 		}
 		while i < len
 		{
-			defer i += 1;
 			c := buffer[i];
 			if c < #char "0" || c > #char "9"
-				return 0.0, .MALFORMED_INPUT, i;
+				break;
 			if e10digits > 3
 				return 0.0, .INPUT_TOO_LONG, i;
 			e10 = 10 * e10 + (c - #char "0");
 			if e10 != 0
 				e10digits += 1;
+			i += 1;
 		}
 	}
+	if e_index   == len then e_index = i;
+	if dot_index == len then dot_index = i;
 	if signed_e
 		e10 = -e10;
 	if dot_index < e_index

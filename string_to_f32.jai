@@ -71,7 +71,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	signed_m := false;
 	signed_e := false;
 	i : s32 = 0;
-	if len == cast (s32) nan_string.count && memcmp (buffer, nan_string.data, nan_string.count) == 0
+	if len >= cast (s32) nan_string.count && memcmp (buffer, nan_string.data, nan_string.count) == 0
 	{
 		i += cast (s32) nan_string.count;
 		ieee := (cast (u32) signed_m) << (F32_EXPONENT_BITS + F32_MANTISSA_BITS) | (0xff << F32_MANTISSA_BITS) | 1;
@@ -85,7 +85,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	}
 	else if buffer[i] == #char "+"
 		i += 1;
-	if len - i == cast (s32) inf_string.count && memcmp (buffer + i, inf_string.data, inf_string.count) == 0
+	if len - i >= cast (s32) inf_string.count && memcmp (buffer + i, inf_string.data, inf_string.count) == 0
 	{
 		i += cast (s32) inf_string.count;
 		ieee := (cast (u32) signed_m) << (F32_EXPONENT_BITS + F32_MANTISSA_BITS) | (0xff << F32_MANTISSA_BITS);
@@ -113,6 +113,8 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 			m10digits += 1;
 		i += 1;
 	}
+	if i == 0
+		return 0.0, .MALFORMED_INPUT, i;
 	if i < len && (buffer[i] == #char "e" || buffer[i] == #char "E")
 	{
 		e_index = i;
@@ -124,17 +126,19 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 		}
 		while i < len
 		{
-			defer i += 1;
 			c := buffer[i];
 			if c < #char "0" || c > #char "9"
-				return 0.0, .MALFORMED_INPUT, i;
+				break;
 			if e10digits > 3
 				return 0.0, .INPUT_TOO_LONG, i;
 			e10 = 10 * e10 + (c - #char "0");
 			if e10 != 0
 				e10digits += 1;
+			i += 1;
 		}
 	}
+	if e_index   == len then e_index = i;
+	if dot_index == len then dot_index = i;
 	if signed_e
 		e10 = -e10;
 	if dot_index < e_index
