@@ -12,7 +12,7 @@ f32 :: float32;
 f64 :: float64;
 
 BUFFER_SIZE :: 5000;
-PRECISIONS :: u32.[ 0, 3, 6, 10, 17, 100, 500 ];
+PRECISIONS :: u32.[ 0, 3, 6, 10, 16, 100, 500 ];
 BENCH_COUNT :: PRECISIONS.count;
 
 Benchmark_Data :: struct

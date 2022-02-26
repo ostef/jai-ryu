@@ -1,3 +1,3 @@
-Average,Precision = 0,Precision = 3,Precision = 6,Precision = 10,Precision = 17,Precision = 100,Precision = 500
-Ryū format,108.7168,109.95096,114.67906,112.00237,112.06105,125.38781,286.61162
-stb_sprintf,147.57608,154.20812,156.86522,157.49738,161.4285,172.56951,212.12978
+Average,Precision = 0,Precision = 3,Precision = 6,Precision = 10,Precision = 16,Precision = 100,Precision = 500
+Ryū format,108.83069,109.99537,114.61643,112.00389,112.28277,125.25741,286.61107
+stb_sprintf,147.58732,154.13207,156.8708,157.48284,161.26665,172.51296,212.03482
