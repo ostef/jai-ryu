@@ -1,0 +1,3 @@
+Average,Precision = 0,Precision = 3,Precision = 6,Precision = 10,Precision = 17,Precision = 100,Precision = 500
+Ryū format,189.59898,167.00884,120.35021,124.71876,118.8572,127.00505,294.25863
+stb_sprintf,256.26617,233.65535,163.21409,170.51807,168.10961,174.20062,216.76888
