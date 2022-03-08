@@ -477,6 +477,10 @@ f64_to_fixed_buffered :: (
 #if DEBUG
 {
 		print ("round_up=%\n", round_up);
+		curr_str : string;
+		curr_str.data = result;
+		curr_str.count = index;
+		print ("current=%\n", curr_str);
 }
 
 		if round_up != 0
@@ -486,6 +490,10 @@ f64_to_fixed_buffered :: (
 			while true
 			{
 				round_index -= 1;
+#if DEBUG
+{
+				print ("round_index=%\n", round_index);
+}
 				if round_index == -1 || result[round_index] == #char "-"
 				{
 					result[round_index + 1] = #char "1";
@@ -493,10 +501,10 @@ f64_to_fixed_buffered :: (
 					{
 						result[dot_index] = #char "0";
 						result[dot_index + 1] = #char ".";
-						integral_part.count += 1;
 						fractional_part.data += 1;
 					}
 					result[index] = #char "0";
+					integral_part.count += 1;
 					index += 1;
 
 					break;
