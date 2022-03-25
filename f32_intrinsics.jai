@@ -24,6 +24,7 @@
 #scope_module
 
 pow5factor :: inline (value : u32) -> u32 #must
+#no_context
 {
 	count : u32;
 	while true
@@ -42,12 +43,14 @@ pow5factor :: inline (value : u32) -> u32 #must
 
 // Returns true if value is divisible by 5^p.
 multiple_of_power_of_5 :: inline (value : u32, p : u32) -> bool #must
+#no_context
 {
 	return pow5factor (value) >= p;
 }
 
 // Returns true if value is divisible by 2^p.
 multiple_of_power_of_2 :: inline (value : u32, p : u32) -> bool #must
+#no_context
 {
 	return (value & ((1 << p) - 1)) == 0;
 }
@@ -55,6 +58,7 @@ multiple_of_power_of_2 :: inline (value : u32, p : u32) -> bool #must
 // It seems to be slightly faster to avoid uint128_t here, although the
 // generated code for uint128_t looks slightly nicer.
 mul_shift :: inline (m : u32, factor : u64, shift : s32) -> u32 #must
+#no_context
 {
 	ryu_assert (shift > 32);
 
@@ -70,11 +74,13 @@ mul_shift :: inline (m : u32, factor : u64, shift : s32) -> u32 #must
 }
 
 mul_pow5_inv_div_pow2 :: inline (m : u32, q : u32, j : s32) -> u32 #must
+#no_context
 {
 	return mul_shift (m, F32_POW5_INV_SPLIT[q], j);
 }
 
 mul_pow5_div_pow2 :: inline (m : u32, i : u32, j : s32) -> u32 #must
+#no_context
 {
 	return mul_shift (m, F32_POW5_SPLIT[i], j);
 }

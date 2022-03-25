@@ -30,21 +30,24 @@ F64_MANTISSA_BITS :: 52;
 F64_EXPONENT_BITS :: 11;
 F64_BIAS          :: 1023;
 
-ryu_assert :: (expr : Code, location := #caller_location) #expand
+ryu_assert :: (assertion : bool, location := #caller_location) #expand
+#no_context
 {
-	value := #insert expr;
-	if !value
+	if !assertion
 	{
-		// Prevent assert ()->...->assert ()->...->assert ()->...->assert () infinite loop (format_string might assert for example)
-		if context.handling_assertion_failure then return;
-		context.handling_assertion_failure = true;
-		context.assertion_failed (location, "");
-		context.handling_assertion_failure = false;
+		write_string (location.fully_pathed_filename);
+		write_string (":");
+		write_number (location.line_number);
+		write_string (",");
+		write_number (location.character_number);
+		write_string (": Assertion failed!\n");
+		debug_break ();
 	}
 }
 
 // Returns the number of decimal digits in v, which must not contain more than 9 digits.
 decimal_length9 :: inline (v : u32) -> u32 #must
+#no_context
 {
 	// Function precondition: v is not a 10-digit number.
 	// (f2s: 9 digits are sufficient for round-tripping.)
@@ -64,6 +67,7 @@ decimal_length9 :: inline (v : u32) -> u32 #must
 
 // Returns e == 0 ? 1 : [log_2(5^e)]; requires 0 <= e <= 3528.
 log2pow5 :: inline (e : s32) -> s32 #must
+#no_context
 {
 	// This approximation works up to the point that the multiplication overflows at e = 3529.
 	// If the multiplication were done in 64 bits, it would fail at 5^4004 which is just greater
@@ -76,6 +80,7 @@ log2pow5 :: inline (e : s32) -> s32 #must
 
 // Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 3528.
 pow5bits :: inline (e : s32) -> s32 #must
+#no_context
 {
 	// This approximation works up to the point that the multiplication overflows at e = 3529.
 	// If the multiplication were done in 64 bits, it would fail at 5^4004 which is just greater
@@ -88,12 +93,14 @@ pow5bits :: inline (e : s32) -> s32 #must
 
 // Returns e == 0 ? 1 : ceil(log_2(5^e)); requires 0 <= e <= 3528.
 ceil_log2pow5 :: inline (e : s32) -> s32 #must
+#no_context
 {
 	return log2pow5 (e) + 1;
 }
 
 // Returns floor(log_10(2^e)); requires 0 <= e <= 1650.
 log10pow2 :: inline (e : s32) -> u32 #must
+#no_context
 {
 	// The first value this approximation fails for is 2^1651 which is just greater than 10^297.
 	ryu_assert (e >= 0);
@@ -104,6 +111,7 @@ log10pow2 :: inline (e : s32) -> u32 #must
 
 // Returns floor(log_10(5^e)); requires 0 <= e <= 2620.
 log10pow5 :: inline (e : s32) -> u32 #must
+#no_context
 {
 	// The first value this approximation fails for is 5^2621 which is just greater than 10^1832.
 	ryu_assert (e >= 0);
@@ -113,6 +121,7 @@ log10pow5 :: inline (e : s32) -> u32 #must
 }
 
 copy_special_str :: inline (result : *u8, sign : bool, exponent : bool, mantissa : bool) -> s32
+#no_context
 {
 	if mantissa
 	{
@@ -138,6 +147,7 @@ copy_special_str :: inline (result : *u8, sign : bool, exponent : bool, mantissa
 }
 
 f32_to_bits :: inline (f : f32) -> u32 #must
+#no_context
 {
 	bits : u32 = ---;
 	memcpy (*bits, *f, size_of (f32));
@@ -146,6 +156,7 @@ f32_to_bits :: inline (f : f32) -> u32 #must
 }
 
 f64_to_bits :: inline (f : f64) -> u64 #must
+#no_context
 {
 	bits : u64 = ---;
 	memcpy (*bits, *f, size_of (f64));

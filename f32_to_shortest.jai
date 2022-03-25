@@ -31,6 +31,7 @@ F32_Decimal :: struct
 }
 
 f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decimal #must
+#no_context
 {
 	e2 : s32 = ---;
 	m2 : u32 = ---;
@@ -192,6 +193,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 #scope_file
 
 to_chars :: (v : F32_Decimal, sign : bool, result : *u8) -> total_len : s32
+#no_context
 {
 	// Write v into result, reversed.
 	index : s32 = 0;
@@ -295,6 +297,7 @@ to_chars :: (v : F32_Decimal, sign : bool, result : *u8) -> total_len : s32
 #scope_export
 
 f32_to_shortest_buffered :: (f : f32, result : *u8) -> s32
+#no_context
 {
 	// Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
 	// Decode bits into sign, mantissa, and exponent.

@@ -24,6 +24,7 @@
 #scope_file
 
 floor_log2 :: inline (value : u32) -> s32
+#no_context
 {
 	index : u32 = 32;
 	#asm
@@ -35,6 +36,7 @@ floor_log2 :: inline (value : u32) -> s32
 }
 
 max :: (a : s32, b : s32) -> s32
+#no_context
 {
 	if a < b
 		return b;
@@ -42,6 +44,7 @@ max :: (a : s32, b : s32) -> s32
 }
 
 bits_to_f32 :: (bits : u32) -> f32
+#no_context
 {
 	f : f32 = ---;
 	memcpy (*f, *bits, size_of (f32));
@@ -52,6 +55,7 @@ bits_to_f32 :: (bits : u32) -> f32
 #scope_export
 
 string_to_f32 :: inline (str : string, using fmt := Format.{}) -> value : f32, status : Parse_Status, bytes_read : s32
+#no_context
 {
 	value, status, bytes_read := string_to_f32 (str.data, cast (s32) str.count, fmt);
 
@@ -59,6 +63,7 @@ string_to_f32 :: inline (str : string, using fmt := Format.{}) -> value : f32, s
 }
 
 string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f32, status : Parse_Status, bytes_read : s32
+#no_context
 {
 	if len == 0
 		return 0.0, .INPUT_TOO_SHORT, 0;

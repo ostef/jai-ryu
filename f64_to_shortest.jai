@@ -24,6 +24,7 @@
 #scope_module
 
 decimal_length17 :: inline (v : u64) -> u32
+#no_context
 {
 	// This is slightly faster than a loop.
 	// The average output length is 16.38 digits, so we check high-to-low.
@@ -61,6 +62,7 @@ F64_Decimal :: struct
 }
 
 f64_to_decimal :: inline (ieee_mantissa : u64, ieee_exponent : u32) -> F64_Decimal
+#no_context
 {
 	// @Note (stefan): In Jai, casting rules are a bit different than in C,
 	// this is why when we do in C:
@@ -317,6 +319,7 @@ else
 #scope_file
 
 to_chars :: inline (v : F64_Decimal, sign : bool, result : *u8) -> s32
+#no_context
 {
 	// Step 5: Print the decimal representation.
 	index : s32 = 0;
@@ -457,6 +460,7 @@ to_chars :: inline (v : F64_Decimal, sign : bool, result : *u8) -> s32
 }
 
 f64_to_decimal_small_int :: inline (ieee_mantissa : u64, ieee_exponent : u32, v : *F64_Decimal) -> bool
+#no_context
 {
 	m2 := (1 << F64_MANTISSA_BITS) | ieee_mantissa;
 	e2 := cast (s32) ieee_exponent - F64_BIAS - F64_MANTISSA_BITS;
@@ -488,6 +492,7 @@ f64_to_decimal_small_int :: inline (ieee_mantissa : u64, ieee_exponent : u32, v 
 #scope_export
 
 f64_to_shortest_buffered :: (f : f64, result : *u8) -> s32
+#no_context
 {
 	// Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
 	bits := f64_to_bits (f);

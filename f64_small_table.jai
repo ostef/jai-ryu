@@ -89,6 +89,7 @@ F64_POW5_TABLE : [F64_POW5_TABLE_SIZE]u64 : .[
 
 // Computes 5^i in the form required by Ryu, and stores it in the given pointer.
 f64_compute_pow5 :: inline (i : u32, result : *u64)
+#no_context
 {
 	base : u32 = i / F64_POW5_TABLE_SIZE;
 	base2 : u32 = base * F64_POW5_TABLE_SIZE;
@@ -117,6 +118,7 @@ f64_compute_pow5 :: inline (i : u32, result : *u64)
 
 // Computes 5^-i in the form required by Ryu, and stores it in the given pointer.
 f64_compute_inv_pow5 :: inline (i : u32, result : *u64)
+#no_context
 {
 	base := (i + F64_POW5_TABLE_SIZE - 1) / F64_POW5_TABLE_SIZE;
 	base2 := base * F64_POW5_TABLE_SIZE;

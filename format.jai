@@ -1,4 +1,5 @@
 f64_to_fixed_buffered :: inline (f : f64, using fmt : Format, result : *u8, $temp_buffer_size := 500) -> s32
+#no_context
 {
 	buff : [temp_buffer_size]u8 = ---;
 	total_len, sign, is_inf, is_nan, integral_part, fractional_part := f64_to_fixed_buffered (f, precision, buff.data);
@@ -8,6 +9,7 @@ f64_to_fixed_buffered :: inline (f : f64, using fmt : Format, result : *u8, $tem
 
 // temp_buffer_size is 50 by default, because you'll most likely not use many digits of precision
 f64_to_exp_buffered :: inline (f : f64, using fmt : Format, result : *u8, $temp_buffer_size := 50) -> s32
+#no_context
 {
 	buff : [temp_buffer_size]u8 = ---;
 	total_len, sign, is_inf, is_nan, integral_part, fractional_part, exponent_sign, exponent_part := f64_to_exp_buffered (f, precision, buff.data);
@@ -26,6 +28,7 @@ f64_format :: inline (
 	exponent_sign : bool,
 	exponent_part : string
 ) -> s32
+#no_context
 {
 	index : s32 = 0;
 	if is_nan

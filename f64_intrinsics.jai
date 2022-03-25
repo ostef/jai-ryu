@@ -27,6 +27,7 @@
 {
 
 umul128 :: inline (left : u64, right : u64, product_hi : *u64) -> u64
+#no_context
 {
 	low := left;
 	high : u64 = ---;
@@ -47,6 +48,7 @@ else	// USE_64BIT_INSTRUCTIONS
 {
 
 umul128 :: inline (a : u64, b : u64, product_hi : *u64) -> u64
+#no_context
 {
 	a_lo := cast, trunc (u32) a;
 	a_hi := cast, trunc (u32) (a >> 32);
@@ -89,6 +91,7 @@ umul128 :: inline (a : u64, b : u64, product_hi : *u64) -> u64
 }	// USE_64BIT_INSTRUCTIONS
 
 shiftright128 :: inline (lo : u64, hi : u64, dist : u32) -> u64 #must
+#no_context
 {
 	// We don't need to handle the case dist >= 64 here (see above).
 	ryu_assert (dist < 64);
@@ -103,36 +106,43 @@ shiftright128 :: inline (lo : u64, hi : u64, dist : u32) -> u64 #must
 // We still have these functions for readability.
 
 div5 :: inline (x : u64) -> u64 #must
+#no_context
 {
 	return x / 5;
 }
 
 div10 :: inline (x : u64) -> u64 #must
+#no_context
 {
 	return x / 10;
 }
 
 div100 :: inline (x : u64) -> u64 #must
+#no_context
 {
 	return x / 100;
 }
 
 div1e8 :: inline (x : u64) -> u64 #must
+#no_context
 {
 	return x / 100000000;
 }
 
 div1e9 :: inline (x : u64) -> u64 #must
+#no_context
 {
 	return x / 1000000000;
 }
 
 mod1e9 :: inline (x : u64) -> u32 #must
+#no_context
 {
 	return cast (u32) (x - 1000000000 * div1e9 (x));
 }
 
 pow5factor :: inline (value : u64) -> u32 #must
+#no_context
 {
 	m_inv_5 : u64 = 14757395258967641293;	// 5 * m_inv_5 = 1 (mod 2^64)
 	n_div_5 : u64 = 3689348814741910323;	// #{ n | n = 0 (mod 2^64) } = 2^64 / 5
@@ -151,6 +161,7 @@ pow5factor :: inline (value : u64) -> u32 #must
 
 // Returns true if value is divisible by 5^p.
 multiple_of_power_of_5 :: inline (value : u64, p : u32) -> bool #must
+#no_context
 {
 	// I tried a case distinction on p, but there was no performance difference.
 	return pow5factor (value) >= p;
@@ -158,6 +169,7 @@ multiple_of_power_of_5 :: inline (value : u64, p : u32) -> bool #must
 
 // Returns true if value is divisible by 2^p.
 multiple_of_power_of_2 :: inline (value : u64, p : u32) -> bool #must
+#no_context
 {
 	ryu_assert (value != 0);
 	ryu_assert (p < 64);
@@ -204,6 +216,7 @@ multiple_of_power_of_2 :: inline (value : u64, p : u32) -> bool #must
 //       results are not perfectly aligned.
 
 mul_shift_64 :: inline (m : u64, mul : *u64, j : s32) -> u64 #must
+#no_context
 {
 	// m is maximum 55 bits
 	high1 : u64 = ---;						// 128
@@ -221,6 +234,7 @@ mul_shift_64 :: inline (m : u64, mul : *u64, j : s32) -> u64 #must
 {
 
 mul_shift_all_64 :: inline (m : u64, mul : *u64, j : s32, vp : *u64, vm : *u64, mm_shift : u32) -> u64
+#no_context
 {
 	<<vp = mul_shift_64 (4 * m + 2, mul, j);
 	<<vm = mul_shift_64 (4 * m - 1 - mm_shift, mul, j);
@@ -234,6 +248,7 @@ else	// USE_64BIT_INSTRUCTIONS
 
 // This is faster if we don't have a 64x64->128-bit multiplication.
 mul_shift_all_64 :: inline (m : u64, mul : *u64, j : s32, vp : *u64, vm : *u64, mm_shift : u32) -> u64
+#no_context
 {
 	m <<= 1;
 	// m is maximum 55 bits

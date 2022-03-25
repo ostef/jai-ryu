@@ -26,6 +26,7 @@
 POW10_ADDITIONAL_BITS :: 120;
 
 mul_shift_mod1e9 :: inline (m : u64, mul : *u64, j : s32) -> u32
+#no_context
 {
 #if DEBUG
 {
@@ -92,6 +93,7 @@ mul_shift_mod1e9 :: inline (m : u64, mul : *u64, j : s32) -> u32
 //   10^(olength-1) <= digits < 10^olength
 // e.g., by passing `olength` as `decimalLength9(digits)`.
 append_n_digits :: inline (olength : u32, digits : u32, result : *u8)
+#no_context
 {
 #if DEBUG
 {
@@ -131,6 +133,7 @@ append_n_digits :: inline (olength : u32, digits : u32, result : *u8)
 //   10^(olength-1) <= digits < 10^olength
 // e.g., by passing `olength` as `decimalLength9(digits)`.
 append_d_digits :: inline (olength : u32, digits : u32, result : *u8)
+#no_context
 {
 #if DEBUG
 {
@@ -171,6 +174,7 @@ append_d_digits :: inline (olength : u32, digits : u32, result : *u8)
 // Convert `digits` to decimal and write the last `count` decimal digits to result.
 // If `digits` contains additional digits, then those are silently ignored.
 append_c_digits :: inline (count : u32, digits : u32, result : *u8)
+#no_context
 {
 #if DEBUG
 {
@@ -193,6 +197,7 @@ append_c_digits :: inline (count : u32, digits : u32, result : *u8)
 // Convert `digits` to decimal and write the last 9 decimal digits to result.
 // If `digits` contains additional digits, then those are silently ignored.
 append_nine_digits :: inline (digits : u32, result : *u8)
+#no_context
 {
 #if DEBUG
 {
@@ -219,22 +224,26 @@ append_nine_digits :: inline (digits : u32, result : *u8)
 }
 
 index_for_exponent :: inline (e : u32) -> u32 #must
+#no_context
 {
 	return (e + 15) / 16;
 }
 
 pow10_bits_for_index :: inline (idx : u32) -> u32 #must
+#no_context
 {
 	return 16 * idx + POW10_ADDITIONAL_BITS;
 }
 
 length_for_index :: inline (idx : u32) -> u32 #must
+#no_context
 {
 	// +1 for ceil, +16 for mantissa, +8 to round up when dividing by 9
 	return (log10pow2 (16 * cast (s32) idx) + 1 + 16 + 8) / 9;
 }
 
 copy_special_str_printf :: inline (result : *u8, sign : bool, mantissa : u64) -> s32
+#no_context
 {
 	if mantissa
 	{
@@ -267,6 +276,7 @@ f64_to_fixed_buffered :: (
 	integral_part : string,
 	fractional_part : string
 #no_abc
+#no_context
 {
 	bits := f64_to_bits (f);
 #if DEBUG
@@ -576,6 +586,7 @@ f64_to_exp_buffered :: (
 	fractional_part : string,
 	exponent_sign : bool,
 	exponent_part : string
+#no_context
 #no_abc
 {
 	bits := f64_to_bits (f);
