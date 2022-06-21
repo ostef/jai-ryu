@@ -21,15 +21,6 @@
 // is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.
 
-// A floating decimal representing m * 10^e.
-F32_Decimal :: struct
-{
-	mantissa : u32;
-	// Decimal exponent's range is -45 to 38
-	// inclusive, and can fit in a short if needed.
-	exponent : s32;
-}
-
 f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decimal #must
 #no_context
 {

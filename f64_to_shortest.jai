@@ -52,15 +52,6 @@ decimal_length17 :: inline (v : u64) -> u32
 
 #scope_export
 
-// A floating decimal representing m * 10^e.
-F64_Decimal :: struct
-{
-	mantissa : u64;
-	// Decimal exponent's range is -324 to 308
-	// inclusive, and can fit in a short if needed.
-	exponent : s32;
-}
-
 f64_to_decimal :: inline (ieee_mantissa : u64, ieee_exponent : u32) -> F64_Decimal
 #no_context
 {

@@ -2,13 +2,13 @@
 #import "Math";
 #import "Random";
 #import "File";
-ryu :: #import "Ryu" (USE_64BIT_INSTRUCTIONS = true, OPTIMIZE_SIZE = false);
+ryu :: #import "Ryu" () (USE_64BIT_INSTRUCTIONS = true, OPTIMIZE_SIZE = false);
 #import "stb_sprintf";
 
 #load "ryuc.jai";
 
-F64_POSITIVE_INFINITY :: 0h7ff0_0000_0000_0000;
-F64_NEGATIVE_INFINITY :: 0hfff0_0000_0000_0000;
+//F64_POSITIVE_INFINITY :: 0h7ff0_0000_0000_0000;
+//F64_NEGATIVE_INFINITY :: 0hfff0_0000_0000_0000;
 
 f32 :: float32;
 f64 :: float64;
@@ -151,7 +151,7 @@ write_as_csv :: inline (
 		print_to_builder (*builder, "%", data.mean);
 	}
 	append (*builder, "\n");
-	write_entire_file (filename, builder);
+	write_entire_file (filename, *builder);
 }
 
 main :: ()
