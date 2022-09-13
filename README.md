@@ -18,7 +18,7 @@ By default, Ryu does not import anything, so this is a standalone module. If `DE
 * `OPTIMIZE_SIZE`: Use small tables instead of full tables for d2s. Not entirely supported since s2d only implements it partially. If you want small tables then don't import string to float. Small tables removes about 5 KB to the final executable. Set to false by default.
 * `IMPORT_FLOAT_TO_SHORTEST`: Import the f2s and d2s algorithms. Set to true by default.
 * `IMPORT_FLOAT_TO_FIXED_AND_EXP`: Import the Ryū printf d2fixed and d2exp algorithms. Set to true by default.
-* `IMPORT_STRING_TO_FLOAT`: Import the Ryū string to float algorithms.
+* `IMPORT_STRING_TO_FLOAT`: Import the Ryū string to float algorithms. Set to true by default.
 * `DEBUG`: Print debugging information. Set to false by default.
 
 # Performance comparison between Ryū and stb_sprintf, lower is better
