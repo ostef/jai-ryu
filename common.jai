@@ -30,6 +30,9 @@ F64_MANTISSA_BITS :: 52;
 F64_EXPONENT_BITS :: 11;
 F64_BIAS          :: 1023;
 
+// Ideally this would use the context's assertion failure procedure, but I
+// made this a 'no context' module, which seems like a bad decision after all.
+// @Cleanup
 ryu_assert :: (assertion : bool, location := #caller_location) #expand
 #no_context
 {
@@ -129,18 +132,22 @@ copy_special_str :: inline (result : *u8, sign : bool, exponent : bool, mantissa
 
 		return cast (s32) "NaN".count;
 	}
+
 	index : s32 = 0;
+
 	if sign
 	{
 		result[index] = #char "-";
 		index += 1;
 	}
+
 	if exponent
 	{
 		memcpy (result + index, "Inf".data, "Inf".count);
 
 		return index + cast (s32) "Inf".count;
 	}
+
 	memcpy (result + index, "0e0".data, 3);
 	
 	return index + 3;

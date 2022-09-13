@@ -26,6 +26,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 {
 	e2 : s32 = ---;
 	m2 : u32 = ---;
+
 	if ieee_exponent == 0
 	{
 		// We subtract 2 so that the bounds computation has 2 additional bits.
@@ -37,6 +38,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 		e2 = cast (s32) ieee_exponent - F32_BIAS - F32_MANTISSA_BITS - 2;
 		m2 = (1 << F32_MANTISSA_BITS) | ieee_mantissa;
 	}
+
 	even := (m2 & 1) == 0;
 	accept_bounds := even;
 	
@@ -54,15 +56,18 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 	vm_is_trailing_zeroes := false;
 	vr_is_trailing_zeroes := false;
 	last_removed_digit : u8 = 0;
+
 	if e2 >= 0
 	{
 		q := log10pow2 (e2);
 		e10 = cast (s32) q;
 		k := cast (s32) F32_POW5_INV_BITCOUNT + pow5bits (cast (s32) q) - 1;
 		i := -e2 + cast (s32) q + k;
+		
 		vr = mul_pow5_inv_div_pow2 (mv, q, i);
 		vp = mul_pow5_inv_div_pow2 (mp, q, i);
 		vm = mul_pow5_inv_div_pow2 (mm, q, i);
+		
 		if q != 0 && (vp - 1) / 10 <= vm / 10
 		{
 			// We need to know one removed digit even if we are not going to loop below. We could use
@@ -71,6 +76,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 			l := F32_POW5_INV_BITCOUNT + pow5bits (cast (s32) (q - 1)) - 1;
 			last_removed_digit = cast (u8) (mul_pow5_inv_div_pow2 (mv, q - 1, -e2 + cast (s32) q - 1 + l) % 10);
 		}
+		
 		if q <= 9
 		{
 			// The largest power of 5 that fits in 24 bits is 5^10, but q <= 9 seems to be safe as well.
@@ -90,14 +96,17 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 		i := -e2 - cast (s32) q;
 		k := pow5bits (i) - F32_POW5_BITCOUNT;
 		j := cast (s32) q - k;
+		
 		vr = mul_pow5_div_pow2 (mv, cast (u32) i, j);
 		vp = mul_pow5_div_pow2 (mp, cast (u32) i, j);
 		vm = mul_pow5_div_pow2 (mm, cast (u32) i, j);
+		
 		if q != 0 && (vp - 1) / 10 <= vm / 10
 		{
 			j = cast (s32) q - 1 - (pow5bits (i + 1) - F32_POW5_BITCOUNT);
 			last_removed_digit = cast (u8) (mul_pow5_div_pow2 (mv, cast (u32) (i + 1), 1) % 10);
 		}
+		
 		if q <= 1
 		{
 			// {vr,vp,vm} is trailing zeros if {mv,mp,mm} has at least q trailing 0 bits.
@@ -123,6 +132,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 	// Step 4: Find the shortest decimal representation in the interval of valid representations.
 	removed : s32 = 0;
 	output : u32 = ---;
+
 	if vm_is_trailing_zeroes || vr_is_trailing_zeroes
 	{
 		// General case, which happens rarely (~4.0%).
@@ -155,6 +165,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 			// Round even if the exact number is .....50..0.
 			last_removed_digit = 4;
 		}
+
 		// We need to take vr + 1 if vr is outside bounds or we need to round up.
 		output = vr + cast (u32) ((vr == vm && (!accept_bounds || !vm_is_trailing_zeroes)) || last_removed_digit >= 5);
 	}
@@ -171,6 +182,7 @@ f32_to_decimal :: inline (ieee_mantissa : u32, ieee_exponent : u32) -> F32_Decim
 			vm /= 10;
 			removed += 1;
 		}
+
 		output = vr + cast (u32) (vr == vm || last_removed_digit >= 5);
 	}
 	
@@ -188,14 +200,17 @@ to_chars :: (v : F32_Decimal, sign : bool, result : *u8) -> total_len : s32
 {
 	// Write v into result, reversed.
 	index : s32 = 0;
+
 	if sign
 	{
 		result[index] = #char "-";
 		index += 1;
 	}
+
 	output := v.mantissa;
 	length := cast (s32) decimal_length9 (output);
 	total_length := index + length;
+
 	{
 		exp := v.exponent + cast (s32) length - 1;
 		if exp < 0
@@ -230,6 +245,7 @@ to_chars :: (v : F32_Decimal, sign : bool, result : *u8) -> total_len : s32
 		memcpy (result + index + length - i - 3, DIGIT_TABLE.data + c1, 2);
 		i += 4;
 	}
+
 	if output >= 100
 	{
 		c := (output % 100) << 1;
@@ -237,6 +253,7 @@ to_chars :: (v : F32_Decimal, sign : bool, result : *u8) -> total_len : s32
 		memcpy (result + index + length - i - 1, DIGIT_TABLE.data + c, 2);
 		i += 2;
 	}
+
 	if output >= 10
 	{
 		c := output << 1;
@@ -296,9 +313,11 @@ f32_to_shortest_buffered :: (f : f32, result : *u8) -> s32
 	ieee_sign := cast (bool) ((bits >> (F32_MANTISSA_BITS + F32_EXPONENT_BITS)) & 1);
 	ieee_mantissa := bits & ((1 << F32_MANTISSA_BITS) - 1);
 	ieee_exponent := (bits >> F32_MANTISSA_BITS) & ((1 << F32_EXPONENT_BITS) - 1);
+
 	// Case distinction; exit early for the easy cases.
 	if ieee_exponent == ((1 << F32_EXPONENT_BITS) - 1) || (ieee_exponent == 0 && ieee_mantissa == 0)
 		return copy_special_str (result, ieee_sign, ieee_exponent != 0, ieee_mantissa != 0);
+
 	v := f32_to_decimal (ieee_mantissa, ieee_exponent);
 
 	return to_chars (v, ieee_sign, result);

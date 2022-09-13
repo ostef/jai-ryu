@@ -55,13 +55,13 @@ umul128 :: inline (a : u64, b : u64, product_hi : *u64) -> u64
 	b_lo := cast, trunc (u32) b;
 	b_hi := cast, trunc (u32) (b >> 32);
 
-#if DEBUG
-{
-	print ("a_lo=%\n", a_lo);
-	print ("a_hi=%\n", a_hi);
-	print ("b_lo=%\n", b_lo);
-	print ("b_hi=%\n", b_hi);
-}
+	#if DEBUG
+	{
+		print ("a_lo=%\n", a_lo);
+		print ("a_hi=%\n", a_hi);
+		print ("b_lo=%\n", b_lo);
+		print ("b_hi=%\n", b_hi);
+	}
 
 	b00 := cast, no_check (u64) a_lo * b_lo;
 	b01 := cast, no_check (u64) a_lo * b_hi;
@@ -80,7 +80,7 @@ umul128 :: inline (a : u64, b : u64, product_hi : *u64) -> u64
 	mid2_hi := cast, trunc (u32) (mid2 >> 32);
 
 	p_hi := b11 + mid1_hi + mid2_hi;
-	// @Note (stefan): << has precedence over the cast.
+	// @Note (stefan): << has priority over the cast.
 	p_lo := ((cast, no_check (u64) mid2_lo) << 32) | b00_lo;
 
 	<<product_hi = p_hi;
@@ -147,6 +147,7 @@ pow5factor :: inline (value : u64) -> u32 #must
 	m_inv_5 : u64 = 14757395258967641293;	// 5 * m_inv_5 = 1 (mod 2^64)
 	n_div_5 : u64 = 3689348814741910323;	// #{ n | n = 0 (mod 2^64) } = 2^64 / 5
 	count : u32 = 0;
+
 	while true
 	{
 		ryu_assert (value != 0);
@@ -223,6 +224,7 @@ mul_shift_64 :: inline (m : u64, mul : *u64, j : s32) -> u64 #must
 	low1 := umul128 (m, mul[1], *high1);	// 64
 	high0 : u64 = ---;						// 64
 	umul128 (m, mul[0], *high0);			// 8
+
 	sum := high0 + low1;
 	if sum < high0
 		high1 += 1;	// overflow into high1

@@ -47,6 +47,7 @@ decimal_length17 :: inline (v : u64) -> u32
 	if v >=              1000 then return  4;
 	if v >=               100 then return  3;
 	if v >=                10 then return  2;
+
 	return 1;
 }
 
@@ -62,6 +63,7 @@ f64_to_decimal :: inline (ieee_mantissa : u64, ieee_exponent : u32) -> F64_Decim
 	//     xx_modN = cast (u32) (xx - 10 * xx_divN);
 	e2 : s32 = ---;
 	m2 : u64 = ---;
+
 	if ieee_exponent == 0
 	{
 		// We subtract 2 so that the bounds computation has 2 additional bits.
@@ -73,16 +75,21 @@ f64_to_decimal :: inline (ieee_mantissa : u64, ieee_exponent : u32) -> F64_Decim
 		e2 = cast (s32) ieee_exponent - F64_BIAS - F64_MANTISSA_BITS - 2;
 		m2 = (1 << F64_MANTISSA_BITS) | ieee_mantissa;
 	}
+
 	even := (m2 & 1) == 0;
 	accept_bounds := even;
 
-#if DEBUG
-	print ("-> % * 2^%\n", m2, e2 + 2);
+	#if DEBUG
+	{
+		print ("-> % * 2^%\n", m2, e2 + 2);
+	}
 
 	// Step 2: Determine the interval of valid decimal representations.
 	mv := 4 * m2;
+
 	// Implicit bool -> int conversion. True is 1, false is 0.
 	mm_shift := cast (u32) (ieee_mantissa != 0 || ieee_exponent <= 1);
+
 	// We would compute mp and mm like this:
 	// uint64_t mp = 4 * m2 + 2;
 	// uint64_t mm = mv - 1 - mmShift;
@@ -94,6 +101,7 @@ f64_to_decimal :: inline (ieee_mantissa : u64, ieee_exponent : u32) -> F64_Decim
 	e10 : s32 = ---;
 	vm_is_trailing_zeroes := false;
 	vr_is_trailing_zeroes := false;
+
 	if e2 >= 0
 	{
 		// I tried special-casing q == 0, but there was no effect on performance.
@@ -102,36 +110,46 @@ f64_to_decimal :: inline (ieee_mantissa : u64, ieee_exponent : u32) -> F64_Decim
 		e10 = cast (s32) q;
 		k := F64_POW5_INV_BITCOUNT + pow5bits (cast (s32) q) - 1;
 		i := -e2 + cast (s32) q + k;
-#if OPTIMIZE_SIZE
-{
-		pow5 : [2]u64 = ---;
-		f64_compute_inv_pow5 (q, pow5.data);
-		vr = mul_shift_all_64 (m2, pow5.data, i, *vp, *vm, mm_shift);
-}
-else
-{
-		vr = mul_shift_all_64 (m2, F64_POW5_INV_SPLIT[q].data, i, *vp, *vm, mm_shift);
-}
-#if DEBUG
-{
-		print ("% * 2^% / 10^%\n", mv, e2, q);
-		print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
-}
+
+		#if OPTIMIZE_SIZE
+		{
+			pow5 : [2]u64 = ---;
+			f64_compute_inv_pow5 (q, pow5.data);
+			vr = mul_shift_all_64 (m2, pow5.data, i, *vp, *vm, mm_shift);
+		}
+		else
+		{
+			vr = mul_shift_all_64 (m2, F64_POW5_INV_SPLIT[q].data, i, *vp, *vm, mm_shift);
+		}
+
+		#if DEBUG
+		{
+			print ("% * 2^% / 10^%\n", mv, e2, q);
+			print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
+		}
+
 		if q <= 21
 		{
 			// This should use q <= 22, but I think 21 is also safe. Smaller values
 			// may still be safe, but it's more difficult to reason about them.
 			// Only one of mp, mv, and mm can be a multiple of 5, if any.
 			mv_mod5 := cast (u32) (mv - 5 * div5 (mv));
+
 			if mv_mod5 == 0
+			{
 				vr_is_trailing_zeroes = multiple_of_power_of_5 (mv, q);
+			}
 			else if accept_bounds
+			{
 				// Same as min(e2 + (~mm & 1), pow5Factor(mm)) >= q
 				// <=> e2 + (~mm & 1) >= q && pow5Factor(mm) >= q
 				// <=> true && pow5Factor(mm) >= q, since e2 >= q.
 				vm_is_trailing_zeroes = multiple_of_power_of_5 (mv - 1 - mm_shift, q);
+			}
 			else
+			{
 				vp -= cast (u64) multiple_of_power_of_5 (mv + 2, q);
+			}
 		}
 	}
 	else
@@ -142,33 +160,41 @@ else
 		i := -e2 - cast (s32) q;
 		k := pow5bits (i) - F64_POW5_BITCOUNT;
 		j := cast (s32) q - k;
-#if OPTIMIZE_SIZE
-{
-		pow5 : [2]u64 = ---;
-		f64_compute_pow5 (cast (u32) i, pow5.data);
-		vr = mul_shift_all_64 (m2, pow5.data, j, *vp, *vm, mm_shift);
-}
-else
-{
-		vr = mul_shift_all_64 (m2, F64_POW5_SPLIT[i].data, j, *vp, *vm, mm_shift);
-}
-#if DEBUG
-{
-		print ("% * 5^% / 10^%\n", mv, -e2, q);
-		print ("% % % %\n", q, i, k, j);
-		print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
-}
+		
+		#if OPTIMIZE_SIZE
+		{
+			pow5 : [2]u64 = ---;
+			f64_compute_pow5 (cast (u32) i, pow5.data);
+			vr = mul_shift_all_64 (m2, pow5.data, j, *vp, *vm, mm_shift);
+		}
+		else
+		{
+			vr = mul_shift_all_64 (m2, F64_POW5_SPLIT[i].data, j, *vp, *vm, mm_shift);
+		}
+		
+		#if DEBUG
+		{
+			print ("% * 5^% / 10^%\n", mv, -e2, q);
+			print ("% % % %\n", q, i, k, j);
+			print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
+		}
+		
 		if q <= 1
 		{
 			// {vr,vp,vm} is trailing zeros if {mv,mp,mm} has at least q trailing 0 bits.
 			// mv = 4 * m2, so it always has at least two trailing 0 bits.
 			vr_is_trailing_zeroes = true;
+		
 			if accept_bounds
+			{
 				// mm = mv - 1 - mmShift, so it has 1 trailing 0 bit iff mmShift == 1.
 				vm_is_trailing_zeroes = mm_shift == 1;
+			}
 			else
+			{
 				// mp = mv + 2, so it always has at least one trailing 0 bit.
 				vp -= 1;
+			}
 		}
 		else if q < 63
 		{
@@ -177,22 +203,27 @@ else
 			// <=> p2(mv) >= q && p5(mv) - e2 >= q
 			// <=> p2(mv) >= q (because -e2 >= q)
 			vr_is_trailing_zeroes = multiple_of_power_of_2 (mv, q);
-#if DEBUG
-			print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
+
+			#if DEBUG
+			{
+				print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
+			}
 		}
 	}
-#if DEBUG
-{
-	print ("e10=%\n", e10);
-	print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
-	print ("vm is trailing zeores=%\n", vm_is_trailing_zeroes);
-	print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
-}
+
+	#if DEBUG
+	{
+		print ("e10=%\n", e10);
+		print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
+		print ("vm is trailing zeores=%\n", vm_is_trailing_zeroes);
+		print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
+	}
 
 	// Step 4: Find the shortest decimal representation in the interval of valid representations.
 	removed : s32 = 0;
 	last_removed_digit : u8 = 0;
 	output : u64 = ---;
+
 	// On average, we remove ~2 digits.
 	if vm_is_trailing_zeroes || vr_is_trailing_zeroes
 	{
@@ -201,51 +232,70 @@ else
 		{
 			vp_div10 := div10 (vp);
 			vm_div10 := div10 (vm);
+
 			if vp_div10 <= vm_div10
 				break;
+
 			vm_mod10 := cast (u32) (vm - 10 * vm_div10);
 			vr_div10 := div10 (vr);
 			vr_mod10 := cast (u32) (vr - 10 * vr_div10);
+
 			vm_is_trailing_zeroes &= vm_mod10 == 0;
 			vr_is_trailing_zeroes &= last_removed_digit == 0;
+
 			last_removed_digit = cast (u8) vr_mod10;
+
 			vr = vr_div10;
 			vp = vp_div10;
 			vm = vm_div10;
+
 			removed += 1;
 		}
-#if DEBUG
-{
-		print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
-		print ("d-10=%\n", vm_is_trailing_zeroes);
-}
+
+		#if DEBUG
+		{
+			print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
+			print ("d-10=%\n", vm_is_trailing_zeroes);
+		}
+
 		if vm_is_trailing_zeroes
 		{
 			while true
 			{
 				vm_div10 := div10 (vm);
 				vm_mod10 := cast (u32) (vm - 10 * vm_div10);
+
 				if vm_mod10 != 0
 					break;
+
 				vp_div10 := div10 (vp);
 				vr_div10 := div10 (vr);
 				vr_mod10 := cast (u32) (vr - 10 * vr_div10);
+
 				vr_is_trailing_zeroes &= last_removed_digit == 0;
+
 				last_removed_digit = cast (u8) vr_mod10;
+
 				vr = vr_div10;
 				vp = vp_div10;
 				vm = vm_div10;
+
 				removed += 1;
 			}
 		}
-#if DEBUG
-{
-		print ("% %\n", vr, last_removed_digit);
-		print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
-}
+
+		#if DEBUG
+		{
+			print ("% %\n", vr, last_removed_digit);
+			print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
+		}
+
 		if vr_is_trailing_zeroes && last_removed_digit == 5 && vr % 2 == 0
+		{
 			// Round even if the exact number is .....50..0.
 			last_removed_digit = 4;
+		}
+	
 		// We need to take vr + 1 if vr is outside bounds or we need to round up.
 		output = vr + cast (u64) ((vr == vm && (!accept_bounds || !vm_is_trailing_zeroes)) || last_removed_digit >= 5);
 	}
@@ -255,6 +305,7 @@ else
 		round_up := false;
 		vp_div100 := div100 (vp);
 		vm_div100 := div100 (vm);
+	
 		if vp_div100 > vm_div100	// Optimization: remove two digits at a time (~86.2%).
 		{
 			vr_div100 := div100 (vr);
@@ -265,6 +316,7 @@ else
 			vm = vm_div100;
 			removed += 2;
 		}
+	
 		// Loop iterations below (approximately), without optimization above:
 		// 0: 0.03%, 1: 13.8%, 2: 70.6%, 3: 14.0%, 4: 1.40%, 5: 0.14%, 6+: 0.02%
 		// Loop iterations below (approximately), with optimization above:
@@ -273,32 +325,40 @@ else
 		{
 			vp_div10 := div10 (vp);
 			vm_div10 := div10 (vm);
+	
 			if vp_div10 <= vm_div10
 				break;
+	
 			vr_div10 := div10 (vr);
 			vr_mod10 := cast (u32) (vr - 10 * vr_div10);
+	
 			round_up = vr_mod10 >= 5;
+	
 			vr = vr_div10;
 			vp = vp_div10;
 			vm = vm_div10;
+	
 			removed += 1;
 		}
-#if DEBUG
-{
-		print ("% round_up=%\n", vr, round_up);
-		print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
-}
+	
+		#if DEBUG
+		{
+			print ("% round_up=%\n", vr, round_up);
+			print ("vr is trailing zeores=%\n", vr_is_trailing_zeroes);
+		}
+	
 		// We need to take vr + 1 if vr is outside bounds or we need to round up.
 		output = vr + cast (u64) (vr == vm || round_up);
 	}
+	
 	exp := e10 + removed;
 
-#if DEBUG
-{
-	print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
-	print ("O=%\n", output);
-	print ("EXP=%\n", exp);
-}
+	#if DEBUG
+	{
+		print ("V+=%\nV =%\nV-=%\n", vp, vr, vm);
+		print ("O=%\n", output);
+		print ("EXP=%\n", exp);
+	}
 
 	result : F64_Decimal = ---;
 	result.exponent = exp;
@@ -338,12 +398,13 @@ to_chars :: inline (v : F64_Decimal, sign : bool, result : *u8) -> s32
 			total_length += 3;
 	}
 
-#if DEBUG
-{
-	print ("DIGITS=%\n", v.mantissa);
-	print ("OLEN=%\n", olength);
-	print ("EXP=%\n", v.exponent + olength);
-}
+	#if DEBUG
+	{
+		print ("DIGITS=%\n", v.mantissa);
+		print ("OLEN=%\n", olength);
+		print ("EXP=%\n", v.exponent + olength);
+	}
+	
 	// Print the decimal digits.
 	// The following code is equivalent to:
 	// for (uint32_t i = 0; i < olength - 1; ++i) {
@@ -367,37 +428,49 @@ to_chars :: inline (v : F64_Decimal, sign : bool, result : *u8) -> s32
 		c := output2 % 10000;
 		output2 /= 10000;
 		d := output2 % 10000;
+	
 		c0 := (c % 100) << 1;
 		c1 := (c / 100) << 1;
 		d0 := (d % 100) << 1;
 		d1 := (d / 100) << 1;
+	
 		memcpy (result + index + olength - i - 1, DIGIT_TABLE.data + c0, 2);
 		memcpy (result + index + olength - i - 3, DIGIT_TABLE.data + c1, 2);
 		memcpy (result + index + olength - i - 5, DIGIT_TABLE.data + d0, 2);
 		memcpy (result + index + olength - i - 7, DIGIT_TABLE.data + d1, 2);
+	
 		i += 8;
 	}
+	
 	output2 := cast (u32) output;
 	while output2 >= 10000
 	{
 		c := output2 % 10000;
 		output2 /= 10000;
+	
 		c0 := (c % 100) << 1;
 		c1 := (c / 100) << 1;
+	
 		memcpy (result + index + olength - i - 1, DIGIT_TABLE.data + c0, 2);
 		memcpy (result + index + olength - i - 3, DIGIT_TABLE.data + c1, 2);
+	
 		i += 4;
 	}
+	
 	if output2 >= 100
 	{
 		c := (output2 % 100) << 1;
 		output2 /= 100;
+	
 		memcpy (result + index + olength - i - 1, DIGIT_TABLE.data + c, 2);
+	
 		i += 2;
 	}
+	
 	if output2 >= 10
 	{
 		c := output2 << 1;
+	
 		// We can't use memcpy here: the decimal dot goes between these two digits.
 		result[index + olength - i] = DIGIT_TABLE[c + 1];
 		result[index] = DIGIT_TABLE[c];
@@ -422,18 +495,22 @@ to_chars :: inline (v : F64_Decimal, sign : bool, result : *u8) -> s32
 	result[index] = #char "e";
 	index += 1;
 	exp := v.exponent + olength - 1;
+	
 	if exp < 0
 	{
 		result[index] = #char "-";
 		index += 1;
+	
 		exp = -exp;
 	}
 
 	if exp >= 100
 	{
 		c := exp % 10;
+	
 		memcpy (result + index, DIGIT_TABLE.data + 2 * (exp / 10), 2);
 		result[index + 2] = cast (u8) (#char "0" + c);
+	
 		index += 3;
 	}
 	else if exp >= 10
@@ -460,6 +537,7 @@ f64_to_decimal_small_int :: inline (ieee_mantissa : u64, ieee_exponent : u32, v 
 		// f = m2 * 2^e2 >= 2^53 is an integer.
 		// Ignore this case for now.
 		return false;
+	
 	if e2 < -52
 		// f < 1
 		return false;
@@ -488,17 +566,19 @@ f64_to_shortest_buffered :: (f : f64, result : *u8) -> s32
 	// Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
 	bits := f64_to_bits (f);
 
-#if DEBUG
-{
-	print ("IN=");
-	for < bit : 63..0
-		print ("%", ((bits >> bit) & 1));
-	print ("\n");
-}
+	#if DEBUG
+	{
+		print ("IN=");
+		for < bit : 63..0
+			print ("%", ((bits >> bit) & 1));
+		print ("\n");
+	}
+	
 	// Decode bits into sign, mantissa, and exponent.
 	ieee_sign := cast (bool) ((bits >> (F64_MANTISSA_BITS + F64_EXPONENT_BITS)) & 1);
 	ieee_mantissa := bits & ((1 << F64_MANTISSA_BITS) - 1);
 	ieee_exponent := cast (u32) ((bits >> F64_MANTISSA_BITS) & ((1 << F64_EXPONENT_BITS) - 1));
+	
 	// Case distinction; exit early for the easy cases.
 	if ieee_exponent == ((1 << F64_EXPONENT_BITS) - 1) || (ieee_exponent == 0 && ieee_mantissa == 0)
 		return copy_special_str (result, ieee_sign, ieee_exponent != 0, ieee_mantissa != 0);
@@ -515,8 +595,10 @@ f64_to_shortest_buffered :: (f : f64, result : *u8) -> s32
 		{
 			q := div10 (v.mantissa);
 			r := cast (u32) (v.mantissa - 10 * q);
+	
 			if r != 0
 				break;
+	
 			v.mantissa = q;
 			v.exponent += 1;
 		}

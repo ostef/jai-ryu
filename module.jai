@@ -27,11 +27,13 @@
 	// to set this to false, since Jai only supports x64 so this should always
 	// be available, and faster.
 	USE_64BIT_INSTRUCTIONS := true,
+
 	// Use small tables instead of full tables for f64_to_shortest.
 	// Not entirely supported since string_to_f64 only implements it partially.
 	// If you want small tables then don't import string to float.
 	// Removes about 5 KB to the final executable.
 	OPTIMIZE_SIZE := false,
+
 	IMPORT_FLOAT_TO_SHORTEST := true,
 	IMPORT_FLOAT_TO_FIXED_AND_EXP := true,
 	IMPORT_STRING_TO_FLOAT := true
@@ -147,8 +149,8 @@ else
 
 #if IMPORT_FLOAT_TO_FIXED_AND_EXP
 {
-	#load "f64_to_fixed_full_table.jai";
-	#load "f64_to_fixed.jai";
+	#load "f64_to_fixed_and_exp_full_table.jai";
+	#load "f64_to_fixed_and_exp.jai";
 	#load "format.jai";
 }
 else

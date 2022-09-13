@@ -67,6 +67,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 {
 	if len == 0
 		return 0.0, .INPUT_TOO_SHORT, 0;
+
 	m10digits : s32 = 0;
 	e10digits : s32 = 0;
 	dot_index := len;
@@ -76,6 +77,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	signed_m := false;
 	signed_e := false;
 	i : s32 = 0;
+
 	if len >= cast (s32) nan_string.count && memcmp (buffer, nan_string.data, nan_string.count) == 0
 	{
 		i += cast (s32) nan_string.count;
@@ -83,6 +85,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 
 		return bits_to_f32 (ieee), .SUCCESS, i;
 	}
+
 	if buffer[i] == #char "-"
 	{
 		signed_m = true;
@@ -90,6 +93,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	}
 	else if buffer[i] == #char "+"
 		i += 1;
+
 	if len - i >= cast (s32) inf_string.count && memcmp (buffer + i, inf_string.data, inf_string.count) == 0
 	{
 		i += cast (s32) inf_string.count;
@@ -97,29 +101,38 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 
 		return bits_to_f32 (ieee), .SUCCESS, i;
 	}
+
 	while i < len
 	{
 		c := buffer[i];
+
 		if c == decimal_separator
 		{
 			if dot_index != len
 				return 0.0, .MALFORMED_INPUT, i;
+
 			dot_index = i;
 			i += 1;
 
 			continue;
 		}
+
 		if c < #char "0" || c > #char "9"
 			break;
+
 		if m10digits >= 9
 			return 0.0, .INPUT_TOO_LONG, i;
+
 		m10 = 10 * m10 + (c - #char "0");
 		if m10 != 0
 			m10digits += 1;
+
 		i += 1;
 	}
+
 	if i == 0
 		return 0.0, .MALFORMED_INPUT, i;
+
 	if i < len && (buffer[i] == #char "e" || buffer[i] == #char "E")
 	{
 		e_index = i;
@@ -129,42 +142,58 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 			signed_e = buffer[i] == #char "-";
 			i += 1;
 		}
+
 		while i < len
 		{
 			c := buffer[i];
+
 			if c < #char "0" || c > #char "9"
 				break;
+
 			if e10digits > 3
 				return 0.0, .INPUT_TOO_LONG, i;
+
 			e10 = 10 * e10 + (c - #char "0");
 			if e10 != 0
 				e10digits += 1;
+
 			i += 1;
 		}
 	}
-	if e_index   == len then e_index = i;
-	if dot_index == len then dot_index = i;
+
+	if e_index   == len
+		e_index = i;
+
+	if dot_index == len
+		dot_index = i;
+
 	if signed_e
 		e10 = -e10;
+
 	if dot_index < e_index
 		e10 -= e_index - dot_index - 1;
+
 	if m10 == 0
 		return (ifx signed_m then -0.0 else 0.0), .SUCCESS, i;
-#if DEBUG
-{
-	str_buff : string = ---;
-	str_buff.data = buffer;
-	str_buff.count = len;
-	print ("Input=%\n", str_buff);
-	print ("m10digits = %\n", m10digits);
-	print ("e10digits = %\n", e10digits);
-	print ("m10 * 10^e10 = % * 10^%\n", m10, e10);
-}
+
+	#if DEBUG
+	{
+		str_buff : string = ---;
+		str_buff.data = buffer;
+		str_buff.count = len;
+
+		print ("Input=%\n", str_buff);
+		print ("m10digits = %\n", m10digits);
+		print ("e10digits = %\n", e10digits);
+		print ("m10 * 10^e10 = % * 10^%\n", m10, e10);
+	}
+
 	if m10digits + e10 <= -46 || m10 == 0
 	{
 		// Number is less than 1e-46, which should be rounded down to 0; return +/-0.0.
 		return (ifx signed_m then -0.0 else 0.0), .SUCCESS, i;
 	}
+
 	if m10digits + e10 >= 40
 	{
 		// Number is larger than 1e+40, which should be rounded to +/-Infinity.
@@ -174,7 +203,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	}
 
 	// Convert to binary float m2 * 2^e2, while retaining information about whether the conversion
-	// was exact (trailingZeros).
+	// was exact (trailingZeroes).
 	e2 : s32 = ---;
 	m2 : u32 = ---;
 	trailing_zeroes : bool = ---;
@@ -195,6 +224,7 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 		// To that end, we use the FLOAT_POW5_SPLIT table.
 		j := e2 - e10 - ceil_log2pow5 (e10) + F32_POW5_BITCOUNT;
 		ryu_assert (j >= 0);
+
 		m2 = mul_pow5_div_pow2 (m10, cast (u32) e10, j);
 
 		// We also compute if the result is exact, i.e.,
@@ -224,8 +254,11 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 		trailing_zeroes = (e2 < e10 || (e2 - e10 < 32 && multiple_of_power_of_2 (m10, cast (u32) (e2 - e10))))
 			&& multiple_of_power_of_5 (m10, cast (u32) -e10);
 	}
-#if DEBUG
-	print ("m2 * 2^e2 = % * 2^%\n", m2, e2);
+
+	#if DEBUG
+	{
+		print ("m2 * 2^e2 = % * 2^%\n", m2, e2);
+	}
 
 	// Compute the final IEEE exponent.
 	ieee_e2 := cast (u32) max (0, e2 + F32_BIAS + floor_log2 (m2));
@@ -242,11 +275,12 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	// the value 0.
 	shift := cast (s64) (ifx ieee_e2 == 0 then 1 else ieee_e2) - e2 - F32_BIAS - F32_MANTISSA_BITS;
 	ryu_assert (shift >= 0);
-#if DEBUG
-{
-	print ("ieee_e2 = %\n", ieee_e2);
-	print ("shift = %\\n", shift);
-}
+
+	#if DEBUG
+	{
+		print ("ieee_e2 = %\n", ieee_e2);
+		print ("shift = %\\n", shift);
+	}
 
 	// We need to round up if the exact value is more than 0.5 above the value we computed. That's
 	// equivalent to checking if the last removed bit was 1 and either the value was not just
@@ -257,14 +291,16 @@ string_to_f32 :: (buffer : *u8, len : s32, using fmt := Format.{}) -> value : f3
 	last_removed_bit := cast (u32) (m2 >> (shift - 1)) & 1;
 	round_up := last_removed_bit != 0 && (!trailing_zeroes || (((m2 >> shift) & 1) != 0));
 
-#if DEBUG
-{
-	print ("round_up = %\n", round_up);
-	print ("ieee_m2 = %\n", (m2 >> shift) + cast (u64) round_up);
-}
+	#if DEBUG
+	{
+		print ("round_up = %\n", round_up);
+		print ("ieee_m2 = %\n", (m2 >> shift) + cast (u64) round_up);
+	}
+
 	ieee_m2 := (m2 >> shift) + cast (u32) round_up;
 	ryu_assert (ieee_m2 <= (1 << (F32_MANTISSA_BITS + 1)));
 	ieee_m2 &= (1 << F32_MANTISSA_BITS) - 1;
+
 	if ieee_m2 == 0 && round_up
 	{
 		// Due to how the IEEE represents +/-Infinity, we don't need to check for overflow here.

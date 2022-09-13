@@ -28,7 +28,9 @@
 DIGIT_TABLE :: #insert -> string
 {
 	result : [203]u8;
+
 	result[0] = #char "\"";
+
 	for i : 0..9
 	{
 		for j : 0..9
@@ -37,8 +39,10 @@ DIGIT_TABLE :: #insert -> string
 			result[1 + i * 20 + j * 2 + 1] = cast (u8) (#char "0" + j);
 		}
 	}
+
 	result[201] = #char "\"";
 	result[202] = #char ";";
+
 	str : string = ---;
 	str.data  = result.data;
 	str.count = result.count;

@@ -64,10 +64,13 @@ mul_shift :: inline (m : u32, factor : u64, shift : s32) -> u32 #must
 
 	factor_lo := cast, no_check (u32) factor;
 	factor_hi := cast, no_check (u32) (factor >> 32);
+	
 	bits0     := cast (u64) m * factor_lo;
 	bits1     := cast (u64) m * factor_hi;
+	
 	sum         := (bits0 >> 32) + bits1;
 	shifted_sum := sum >> (shift - 32);
+	
 	ryu_assert (shifted_sum <= cast (u32) 0xffffffff);
 
 	return cast (u32) shifted_sum;

@@ -95,6 +95,7 @@ f64_compute_pow5 :: inline (i : u32, result : *u64)
 	base2 : u32 = base * F64_POW5_TABLE_SIZE;
 	offset : u32 = i - base2;
 	mul := F64_POW5_SPLIT2[base];
+
 	if offset == 0
 	{
 		result[0] = mul[0];
@@ -102,14 +103,17 @@ f64_compute_pow5 :: inline (i : u32, result : *u64)
 
 		return;
 	}
+
 	m := F64_POW5_TABLE[offset];
 	high1 : u64 = ---;
 	low1 := umul128 (m, mul[1], *high1);
 	high0 : u64 = ---;
 	low0 := umul128 (m, mul[0], *high0);
+
 	sum := high0 + low1;
 	if sum < high0
 		high1 += 1;	// overflow into high1
+
 	// high1 | sum | low0
 	delta := cast (u32) (pow5bits (cast (s32) i) - pow5bits (cast (s32) base2));
 	result[0] = shiftright128 (low0, sum, delta) + ((POW5_OFFSETS[i / 16] >> ((i % 16) << 1)) & 3);
@@ -124,6 +128,7 @@ f64_compute_inv_pow5 :: inline (i : u32, result : *u64)
 	base2 := base * F64_POW5_TABLE_SIZE;
 	offset := base2 - i;
 	mul := F64_POW5_INV_SPLIT2[base];	// 1/5^base2
+
 	if offset == 0
 	{
 		result[0] = mul[0];
@@ -131,14 +136,17 @@ f64_compute_inv_pow5 :: inline (i : u32, result : *u64)
 
 		return;
 	}
+
 	m := F64_POW5_TABLE[offset];
 	high1 : u64 = ---;
 	low1 := umul128 (m, mul[1], *high1);
 	high0 : u64 = ---;
 	low0 := umul128 (m, mul[0], *high0);
+
 	sum := high0 + low1;
 	if sum < high0
 		high1 += 1;	// overflow into high1
+
 	// high1 | sum | low0
 	delta := cast (u32) (pow5bits (cast (s32) base2) - pow5bits (cast (s32) i));
 	result[0] = shiftright128 (low0, sum, delta) + 1 + ((POW5_INV_OFFSETS[i / 16] >> ((i % 16) << 1)) & 3);
