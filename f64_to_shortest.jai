@@ -611,7 +611,7 @@ f64_to_shortest_buffered :: (f : f64, result : *u8) -> s32
 	return to_chars (v, ieee_sign, result);
 }
 
-f64_to_shortest :: inline (f : f64, allocator : Allocator) -> string #must
+f64_to_shortest :: inline (f : f64, allocator := context.allocator) -> string #must
 {
 	result : string = ---;
 	result.data = allocator.proc (.ALLOCATE, 25, 0, null, allocator.data);

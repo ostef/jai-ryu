@@ -120,7 +120,7 @@ else
 	f32_to_shortest_buffered :: (f : f32, result : *u8) -> s32
 	#no_context { #assert false "Float to shortest not imported. See the program parameters of this module."; return 0; }
 	
-	f32_to_shortest :: inline (f : f32, allocator : Allocator) -> string #must
+	f32_to_shortest :: inline (f : f32, allocator := context.allocator) -> string #must
 	{ #assert false "Float to shortest not imported. See the program parameters of this module."; return ""; }
 }
 
@@ -143,7 +143,7 @@ else
 	f64_to_shortest_buffered :: (f : f64, result : *u8) -> s32
 	#no_context { #assert false "Float to shortest not imported. See the program parameters of this module."; return 0; }
 
-	f64_to_shortest :: inline (f : f64, allocator : Allocator) -> string #must
+	f64_to_shortest :: inline (f : f64, allocator := context.allocator) -> string #must
 	{ #assert false "Float to shortest not imported. See the program parameters of this module."; return ""; }
 }
 
@@ -171,7 +171,7 @@ else
 	f64_to_fixed :: inline (
 		f : f64,
 		precision : u32,
-		allocator : Allocator
+		allocator := context.allocator
 	) ->
 		string #must,
 		sign : bool,
@@ -199,7 +199,7 @@ else
 	f64_to_exp :: inline (
 		f : f64,
 		precision : u32,
-		allocator : Allocator
+		allocator := context.allocator
 	) ->
 		string #must,
 		sign : bool,

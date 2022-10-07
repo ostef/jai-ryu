@@ -640,7 +640,7 @@ f64_to_fixed_buffered :: (
 f64_to_fixed :: inline (
 	f : f64,
 	precision : u32,
-	allocator : Allocator
+	allocator := context.allocator
 ) ->
 	string #must,
 	sign : bool,
@@ -1058,7 +1058,7 @@ f64_to_exp_buffered :: (
 f64_to_exp :: inline (
 	f : f64,
 	precision : u32,
-	allocator : Allocator
+	allocator := context.allocator
 ) ->
 	string #must,
 	sign : bool,
